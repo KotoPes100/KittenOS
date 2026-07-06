@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overflow: auto !important;
+    }
+
+    html, body {
+      overflow: hidden !important; /* перебивает "* {overflow:auto}" за счёт большей специфичности */
+    }
+
+    body {
+      margin: 0;
+      padding: 15px;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: transparent; 
+      color: #003;
+    }
+
+    /* Единая бесшовная стеклянная панель */
+    .calculator {
+      backdrop-filter: blur(6.7px) saturate(110%) !important;
+      -webkit-backdrop-filter: blur(6.7px) saturate(110%) !important;
+      background: rgba(255, 255, 255, 0.02); 
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 30px;
+      padding: 25px;
+      width: 340px;
+      height: 510px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    /* Двухуровневый контейнер для экрана */
+    .display-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 95px;
+      padding: 10px 10px 0 10px;
+      overflow: auto;
+    }
+
+    /* Строка истории (предыдущие числа) */
+    .history {
+      font-size: 1.1rem;
+      color: rgba(0, 0, 51, 0.4); 
+      text-align: right;
+      min-height: 1.5rem;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .history::-webkit-scrollbar { display: none; }
+
+    /* Главный экран калькулятора */
+    .display {
+      font-size: 3rem;
+      line-height: 1.2;
+      text-align: right;
+      color: #003;
+      font-weight: 300;
+      overflow-x: auto;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      letter-spacing: -1px;
+    }
+    .display::-webkit-scrollbar { display: none; }
+
+    /* Сетка сенсорных зон */
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      flex-grow: 1;
+    }
+
+    /* Полностью плоские сенсорные кнопки */
+    button {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      font-weight: 400;
+      color: #003;
+      
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    button:active {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .operator { 
+      color: #007aff; 
+      font-weight: 500;
+    }
+    
+    .clear { 
+      color: #ff3b30; 
+    }
+
+    /* Кнопка РАВНО */
+    .equal { 
+      grid-column: span 2; 
+      aspect-ratio: auto;
+      border-radius: 40px;
+      background: rgba(0, 122, 255, 0.12);
+      color: #007aff;
+      font-weight: 500;
+    }
+
+    .equal:active {
+      background: rgba(0, 122, 255, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="calculator">
+    <div class="display-container">
+      <div class="history" id="history"></div>
+      <div class="display" id="display">0</div>
+    </div>
+    
+    <div class="keys">
+      <button class="clear" onclick="clearDisplay()">C</button>
+      <button class="operator" onclick="appendValue('(')">(</button>
+      <button class="operator" onclick="appendValue(')')">)</button>
+      <button class="operator" onclick="appendValue('/')">÷</button>
+
+      <button onclick="appendValue('7')">7</button>
+      <button onclick="appendValue('8')">8</button>
+      <button onclick="appendValue('9')">9</button>
+      <button class="operator" onclick="appendValue('*')">×</button>
+
+      <button onclick="appendValue('4')">4</button>
+      <button onclick="appendValue('5')">5</button>
+      <button onclick="appendValue('6')">6</button>
+      <button class="operator" onclick="appendValue('-')">-</button>
+
+      <button onclick="appendValue('1')">1</button>
+      <button onclick="appendValue('2')">2</button>
+      <button onclick="appendValue('3')">3</button>
+      <button class="operator" onclick="appendValue('+')">+</button>
+
+      <button onclick="appendValue('0')">0</button>
+      <button onclick="appendValue('.')">.</button>
+      <button class="equal" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <script>
+    // Подгонка калькулятора под маленькие экраны через transform: scale
+    const calculator = document.querySelector('.calculator');
+
+    function fitCalculator() {
+      // сбрасываем масштаб, чтобы измерить "родной" размер
+      calculator.style.transform = 'scale(1)';
+
+      const margin = 20; // небольшой отступ от краёв экрана
+      const availableWidth = window.innerWidth - margin;
+      const availableHeight = window.innerHeight - margin;
+
+      const scaleX = availableWidth / calculator.offsetWidth;
+      const scaleY = availableHeight / calculator.offsetHeight;
+
+      // никогда не увеличиваем больше 1 — только уменьшаем на маленьких экранах
+      const scale = Math.min(1, scaleX, scaleY);
+
+      calculator.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('load', fitCalculator);
+    window.addEventListener('resize', fitCalculator);
+    window.addEventListener('orientationchange', fitCalculator);
+
+    const display = document.getElementById('display');
+    const history = document.getElementById('history');
+    let currentVal = '0';
+    let lastEquation = '';
+
+    // Умная функция красивого форматирования чисел с пробелами
+    function formatVisualString(str) {
+      // 1. Заменяем технические знаки умножения/деления на красивые
+      let visual = str.replace(/\*/g, '×').replace(/\//g, '÷');
+      
+      // 2. Находим в строке блоки цифр и форматируем их по 3 разряда (но не трогаем дробную часть после точки)
+      return visual.replace(/\d+/g, (match, offset, fullStr) => {
+        // Если перед этой группой цифр стоит точка, значит это дробная часть — её не разделяем пробелами
+        if (offset > 0 && fullStr[offset - 1] === '.') {
+          return match;
+        }
+        // Форматируем целое число пробелами
+        return match.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      });
+    }
+
+    function updateDisplay() {
+      display.innerText = formatVisualString(currentVal);
+      history.innerText = formatVisualString(lastEquation);
+      
+      display.scrollLeft = display.scrollWidth;
+      history.scrollLeft = history.scrollWidth;
+    }
+
+    function appendValue(val) {
+      if (currentVal === '0' && val !== '.') {
+        currentVal = val;
+      } else {
+        currentVal += val;
+      }
+      updateDisplay();
+    }
+
+    function clearDisplay() {
+      currentVal = '0';
+      lastEquation = '';
+      updateDisplay();
+    }
+
+    function calculate() {
+      try {
+        const sanitized = currentVal.replace(/[^0-9+\-*/.()]/g, '');
+        const result = eval(sanitized);
+        
+        if (!isFinite(result)) throw new Error();
+
+        lastEquation = currentVal + ' ='; 
+        currentVal = String(Math.round(result * 10000000) / 10000000);
+        updateDisplay();
+      } catch (e) {
+        currentVal = 'Error';
+        updateDisplay();
+        setTimeout(clearDisplay, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
