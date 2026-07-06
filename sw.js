@@ -12,7 +12,7 @@ const ASSETS = [
   './apps/calculator.html',
   './apps/list.html',
   "./apps/cat's maps.html", 
-  './apps/search.html'
+  './apps/search.html',
   './apps/weather.html'
 ];
 
