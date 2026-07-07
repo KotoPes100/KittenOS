@@ -682,14 +682,14 @@ function toggleAppTrust(appId) {
       whitelist.push(appId);
       localStorage.setItem('catos_trusted_apps', JSON.stringify(whitelist));
       window.trustedAppsWhitelist = whitelist;
-      alert("Application trusted. Please open it to apply full filesystem access.");
+      showInfoBox("Application trusted. Please open it to apply full filesystem access.");
       renderApps();
     }
   } else {
     whitelist = whitelist.filter(id => id !== appId);
     localStorage.setItem('catos_trusted_apps', JSON.stringify(whitelist));
     window.trustedAppsWhitelist = whitelist;
-    alert("Trust revoked. Application is now securely sandboxed.");
+    showInfoBox("Trust revoked. Application is now securely sandboxed.");
     renderApps();
     
     // Если приложение открыто, грохаем его фрейм, чтобы принудительно вернуть в песочницу
