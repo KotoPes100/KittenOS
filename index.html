@@ -371,7 +371,6 @@ color: red;
       <panel>🔧Dev tools<input type="checkbox" id="dev-switch"></panel>
       <button onclick="installHtml()" style="color: #034;">⬇ App installer</button><br>
       <button onclick="location.reload()">↻ Reload system</button>
-<br>
   <small>v.1.0</small>
     </panel>
 <panel id="app-installer" style="display: none;">
@@ -630,22 +629,34 @@ function renderApps() {
       clearTimeout(touchTimeout);
     });
 
-    // Ховер для ПК (тултип теперь в body, поэтому не через CSS :hover, а явно)
-    btn.addEventListener('mouseenter', () => {
+    // Ховер для ПК (тултип теперь в body, поэтому не через CSS :hover, а явно).
+    // Скрытие делаем с небольшой задержкой, отменяемой при входе мыши в сам тултип —
+    // иначе путь курсора от иконки к кнопкам Trust/Delete проходил бы через "пустоту"
+    // между ними и гасил тултип раньше, чем мышь успевала до них доехать.
+    let hoverHideTimeout;
+    const showTooltip = () => {
+      clearTimeout(hoverHideTimeout);
       const rect = btn.getBoundingClientRect();
       tooltip.style.top = (rect.top + rect.height / 2) + "px";
       tooltip.classList.add('visible');
-    });
-    btn.addEventListener('mouseleave', () => {
-      tooltip.classList.remove('visible');
-    });
+    };
+    const hideTooltipDelayed = () => {
+      hoverHideTimeout = setTimeout(() => tooltip.classList.remove('visible'), 150);
+    };
+    btn.addEventListener('mouseenter', showTooltip);
+    btn.addEventListener('mouseleave', hideTooltipDelayed);
+    tooltip.addEventListener('mouseenter', () => clearTimeout(hoverHideTimeout));
+    tooltip.addEventListener('mouseleave', hideTooltipDelayed);
 
     container.appendChild(btn);
   });
 
   // Закрытие тултипов при таче в любое другое место экрана
+  // (тултип физически лежит в body, поэтому проверяем ещё и .app-tooltip,
+  // иначе тап по кнопке Trust/Delete внутри тултипа считался бы тапом "снаружи"
+  // и прятал тултип раньше, чем успевал сработать сам клик)
   document.addEventListener('touchstart', (e) => {
-    if (!e.target.closest('.appIcon')) {
+    if (!e.target.closest('.appIcon') && !e.target.closest('.app-tooltip')) {
       document.querySelectorAll('.appIcon.touch-active').forEach(el => {
         el.classList.remove('touch-active');
         if (el.tooltip) el.tooltip.classList.remove('visible');
