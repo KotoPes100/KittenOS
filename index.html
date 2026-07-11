@@ -31,7 +31,7 @@ color: red;
       background-position: center;
       background-attachment: fixed;
       background-color: #067; 
-     /* background: linear-gradient(1100deg, #045, #047, #08d);*/
+     
       color: #003;
       font-family: "Segoe UI", sans-serif;
       margin: 0;
@@ -96,14 +96,13 @@ color: red;
   top: 0;
   left: 0;
   overflow: visible;
-  /* Убиваем блюр на самом родителе, чтобы он не обрезал плашки */
+  
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: none !important;
   background: none !important;
 }
 
-/* Рисуем стеклянный фон отдельно под кнопками */
 #apps::before {
   content: "";
   position: absolute;
@@ -134,15 +133,12 @@ color: red;
   border: none;
   z-index: 10; 
 
-  /* Базовое скрытое состояние для анимации */
   opacity: 0;
   transform: scale(0.96);
   
-  /* Плавность перехода прозрачности и масштаба */
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
-/* Класс плавного появления */
 .application.visible {
   opacity: 1;
   transform: scale(1);
@@ -252,19 +248,17 @@ color: red;
       letter-spacing: -0.01em;
     }
     
-    /* Контейнер иконки делаем относительным для позиционирования меню */
 .appIcon {
-  position: relative; /* Важно для дочернего меню */
+  position: relative; 
   user-select: none;
   -webkit-user-select: none;
-  -webkit-touch-callout: none; /* отключает системное меню при долгом тапе (iOS/некоторые WebView) */
-  touch-action: manipulation; /* браузер не пытается зумить/скроллить/распознавать другие жесты на долгом тапе */
+  -webkit-touch-callout: none; 
+  touch-action: manipulation; 
 }
 
-/* Стили всплывающего меню */
 .app-tooltip {
-  position: fixed; /* fixed + top из JS (по иконке), left зафиксирован — не съезжает вправо и не создаёт горизонтальный скролл */
-  left: 70px; /* сразу за панелью #apps (60px + margin) */
+  position: fixed; 
+  left: 70px; 
   top: 0;
   transform: translateY(-50%) scale(0.95);
   padding: 6px 12px;
@@ -279,8 +273,6 @@ color: red;
   white-space: nowrap;
 }
 
-/* Показываем через явный класс (тултип живёт в body, а не внутри кнопки —
-   поэтому не полагаемся на CSS-селекторы потомков вроде .appIcon:hover .app-tooltip) */
 .app-tooltip.visible {
   opacity: 1;
   pointer-events: auto;
@@ -397,7 +389,6 @@ color: red;
     
     window.trustedAppsWhitelist = JSON.parse(localStorage.getItem('catos_trusted_apps') || '[]');
     
-    // ÐžÑ‚ÐºÑ€Ñ‹Ñ‚Ð¸Ðµ Ð±Ð°Ð·Ñ‹ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð¸ ÑÐ¾Ð·Ð´Ð°Ð½Ð¸Ðµ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° Ð¿Ñ€Ð¸ Ð¿ÐµÑ€Ð²Ð¾Ð¼ Ð·Ð°Ð¿ÑƒÑÐºÐµ
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open("KittenOS_DB", 1);
@@ -412,7 +403,6 @@ function openDB() {
   });
 }
 
-// Ð—Ð°Ð³Ñ€ÑƒÐ·ÐºÐ° ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð½Ñ‹Ñ… Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¹
 function loadAppsFromDB(db) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction("apps", "readonly");
@@ -423,12 +413,11 @@ function loadAppsFromDB(db) {
   });
 }
 
-// Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð½Ð¾Ð²Ð¾Ð³Ð¾ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð² Ð±Ð°Ð·Ñƒ
 function saveAppToDB(app) {
   openDB().then(db => {
     const tx = db.transaction("apps", "readwrite");
     const store = tx.objectStore("apps");
-    // Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ Ñ‡Ð¸ÑÑ‚Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð±ÐµÐ· Ð²Ñ€ÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ blob-ÑÑÑ‹Ð»ÐºÐ¸ (Ð²Ð¾ÑÑÑ‚Ð°Ð½Ð¾Ð²Ð¸Ð¼ Ð¿Ñ€Ð¸ Ð·Ð°Ð¿ÑƒÑÐºÐµ)
+    
     store.put({
       id: app.id,
       name: app.name,
@@ -495,11 +484,10 @@ applications.push({
         code: "apps/weather.html"
       });
 try {
-    // 2. ÐŸÑ€ÑÐ¼Ð¾ Ð¿Ñ€Ð¸ Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ð¸ Ð¾Ñ‚ÐºÑ€Ñ‹Ð²Ð°ÐµÐ¼ Ð±Ð°Ð·Ñƒ Ð¸ ÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ Ð´Ð°Ð½Ð½Ñ‹Ðµ
+    
     const db = await openDB();
     const savedApps = await loadAppsFromDB(db);
     
-    // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ Ñ€Ð°Ð±Ð¾Ñ‚Ð¾ÑÐ¿Ð¾ÑÐ¾Ð±Ð½Ð¾ÑÑ‚ÑŒ ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð½Ñ‹Ñ… Ñ„Ð°Ð¹Ð»Ð¾Ð² Ñ‡ÐµÑ€ÐµÐ· blob-ÑÑÑ‹Ð»ÐºÐ¸
     savedApps.forEach(app => {
       if (app.file) {
         app.code = URL.createObjectURL(app.file);
@@ -510,14 +498,12 @@ try {
     console.error("IndexedDB error:", e);
   }
 
-  // 3. Ð’Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ€ÐµÐ½Ð´ÐµÑ€ Ð¸ÐºÐ¾Ð½Ð¾Ðº, ÐºÐ¾Ð³Ð´Ð° Ð¼Ð°ÑÑÐ¸Ð² Ð¿Ð¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ Ð³Ð¾Ñ‚Ð¾Ð²
   renderApps();
   window.fs.promises.mkdir('/documents').catch(() => {});
   window.fs.promises.mkdir('/downloads').catch(() => {});
   window.fs.promises.mkdir('/images').catch(() => {});
   window.fs.promises.mkdir('/audio').catch(() => {});
 
-  // 4. Ð¡Ñ€Ð°Ð·Ñƒ ÑƒÐ±Ð¸Ñ€Ð°ÐµÐ¼ Ð¿Ñ€Ð¸Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ðµ Ð¸ Ð¾Ñ‚ÐºÑ€Ñ‹Ð²Ð°ÐµÐ¼ ÐžÐ¡
   HiPan.style.visibility = "hidden";
   document.getElementById("KittenOS").style.visibility = "visible";
   openApp("cat-files")
@@ -538,7 +524,7 @@ function showInfoBox(text, timeoutMs = 5000) {
 function renderApps() {
   const container = document.getElementById("applications");
   container.innerHTML = ""; 
-  // Тултипы теперь лежат в body отдельно от контейнера — чистим их тоже, иначе накопятся дубликаты
+  
   document.querySelectorAll('.app-tooltip').forEach(el => el.remove());
 
   applications.forEach((app) => {
@@ -547,10 +533,8 @@ function renderApps() {
     btn.id = app.id;
     btn.innerHTML = app.icon.includes('.') ? `<img src="${app.icon}" width="100%">` : app.icon || app.name[0];
     
-    // Клик открывает приложение
     btn.onclick = () => openApp(app.id);
 
-    // Создаем тултип ПЕРСОНАЛЬНО для этой иконки
     const tooltip = document.createElement("panel");
     tooltip.className = "app-tooltip";
 
@@ -559,11 +543,10 @@ function renderApps() {
     nameSpan.textContent = app.name;
     tooltip.appendChild(nameSpan);
 
-    // Проверяем на системные приложения
     const isSystemApp = ["cat-files", "cat-gallery", "cat-camera", "cat-browser", "cat-calculator", "cat-list", "cat-s_maps", "cat-weather"].includes(app.id);
 
     if (!isSystemApp) {
-      // Кнопка Trust/Untrust
+      
       const trustBtn = document.createElement("button");
       trustBtn.className = "tooltip-del-btn";
       trustBtn.style.color = "deepskyblue"; 
@@ -578,7 +561,6 @@ function renderApps() {
       };
       tooltip.appendChild(trustBtn);
 
-      // Кнопка Delete
       const delBtn = document.createElement("button");
       delBtn.className = "tooltip-del-btn";
       delBtn.textContent = "Delete";
@@ -586,27 +568,18 @@ function renderApps() {
       tooltip.appendChild(delBtn);
     }
 
-    // ВАЖНО: тултип кладём в body, а НЕ внутрь кнопки.
-    // Кнопка получает transform: scale(0.99) в состоянии :active (пока палец удерживается —
-    // а это как раз всё время долгого нажатия), и transform на предке ломает position: fixed
-    // у потомка (превращает его в absolute относительно этого предка). Поэтому тултип
-    // должен физически лежать вне кнопки, а связь с иконкой держим через JS-класс btn.tooltip.
     document.body.appendChild(tooltip);
     btn.tooltip = tooltip;
 
-    // --- Обработка ТАЧ-событий с задержкой 1.5 секунды ---
     let touchTimeout;
 
-    // Блокируем системное контекстное меню при долгом тапе — иначе оно может
-    // перехватить жест раньше, чем сработает наш таймер
     btn.addEventListener('contextmenu', (e) => e.preventDefault());
 
     btn.addEventListener('touchstart', (e) => {
       if (e.target.classList.contains('tooltip-del-btn')) return;
 
-      // Задержка 1500мс (1.5 секунды) для мобильного UI
       touchTimeout = setTimeout(() => {
-        // Сначала гасим другие активные тултипы
+        
         document.querySelectorAll('.appIcon.touch-active').forEach(el => {
           if (el !== btn) {
             el.classList.remove('touch-active');
@@ -614,7 +587,6 @@ function renderApps() {
           }
         });
 
-        // Позиционируем тултип по вертикали напротив нажатой иконки (left зафиксирован в CSS)
         const rect = btn.getBoundingClientRect();
         tooltip.style.top = (rect.top + rect.height / 2) + "px";
 
@@ -631,10 +603,6 @@ function renderApps() {
       clearTimeout(touchTimeout);
     });
 
-    // Ховер для ПК (тултип теперь в body, поэтому не через CSS :hover, а явно).
-    // Скрытие делаем с небольшой задержкой, отменяемой при входе мыши в сам тултип —
-    // иначе путь курсора от иконки к кнопкам Trust/Delete проходил бы через "пустоту"
-    // между ними и гасил тултип раньше, чем мышь успевала до них доехать.
     let hoverHideTimeout;
     const showTooltip = () => {
       clearTimeout(hoverHideTimeout);
@@ -653,10 +621,6 @@ function renderApps() {
     container.appendChild(btn);
   });
 
-  // Закрытие тултипов при таче в любое другое место экрана
-  // (тултип физически лежит в body, поэтому проверяем ещё и .app-tooltip,
-  // иначе тап по кнопке Trust/Delete внутри тултипа считался бы тапом "снаружи"
-  // и прятал тултип раньше, чем успевал сработать сам клик)
   document.addEventListener('touchstart', (e) => {
     if (!e.target.closest('.appIcon') && !e.target.closest('.app-tooltip')) {
       document.querySelectorAll('.appIcon.touch-active').forEach(el => {
@@ -667,7 +631,6 @@ function renderApps() {
   }, { passive: true });
 }
 
-// БЕЗОПАСНОСТЬ: Функция переключения уровня доверия приложения
 function toggleAppTrust(appId) {
   let whitelist = JSON.parse(localStorage.getItem('catos_trusted_apps') || '[]');
   const isCurrentlyTrusted = whitelist.includes(appId);
@@ -693,41 +656,36 @@ function toggleAppTrust(appId) {
     showInfoBox("Trust revoked. Application is now securely sandboxed.");
     renderApps();
     
-    // Если приложение открыто, грохаем его фрейм, чтобы принудительно вернуть в песочницу
     if(document.getElementById("iframe_" + appId)){closeApp(appId)}
    }
 }
-
 
 function openApp(id) {
   document.getElementById(id).classList.add('opened');
   document.getElementById(id).classList.add('nowOp');
   
-  // 1. Сворачивание приложения при повторном клике
   if (openedApp === id) {
     const currentIframe = document.getElementById("iframe_" + id);
     document.getElementById(openedApp).classList.remove('nowOp')
     if (currentIframe) {
-      currentIframe.classList.remove("visible"); // Запускаем скрытие анимацией
+      currentIframe.classList.remove("visible"); 
       setTimeout(() => {
-        currentIframe.style.display = "none"; // Прячем совсем после окончания анимации
+        currentIframe.style.display = "none"; 
       }, 500);
     }
     openedApp = null;
     return;
   }
 
-  // 2. Если открыто другое приложение — скрываем его фон
   if (openedApp !== null) {
     const oldIframe = document.getElementById("iframe_" + openedApp);
     if (oldIframe) {
       oldIframe.classList.remove("visible");
-      oldIframe.style.display = "none"; // Ему display гасим сразу, так как поверх наплывает новое
+      oldIframe.style.display = "none"; 
     }
     document.getElementById(openedApp).classList.remove('nowOp')
   }
 
-  // 3. (Код создания iframe оставляем без изменений)
   let iframe = document.getElementById("iframe_" + id);
   if (!iframe) {
     const appData = applications.find(app => app.id === id);
@@ -738,25 +696,19 @@ function openApp(id) {
     iframe.className = "application";
     iframe.src = appData.code;
     
-    // БЕЗОПАСНОСТЬ: Настройка песочницы при генерации фрейма
     const isSystemApp = (id === "cat-s_maps" || id === "cat-s_pres" || id === "cat-weather" || id === "cat-files" || id === "cat-camera" || id === "cat-gallery");
     const isTrusted = isSystemApp || window.trustedAppsWhitelist.includes(id);
 
     if (isTrusted) {
-      // Системные и Доверенные — открытый доступ БЕЗ sandbox вообще
+      
       iframe.removeAttribute('sandbox');
     } else {
-      // Сторонние без доверия — Включаем жесткий sandbox без allow-same-origin
+      
       iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-modals allow-downloads');
     }
 
-    
     iframe.onload = function() {
-      // Недоверенные приложения в sandbox БЕЗ allow-same-origin: доступ к их
-      // contentDocument заведомо невозможен и бросит SecurityError в консоль
-      // (даже с того же домена — sandbox без allow-same-origin даёт iframe
-      // уникальное origin). Это ожидаемое поведение песочницы, а не сбой,
-      // поэтому для таких приложений даже не пытаемся туда лезть.
+      
       if (!isTrusted) return;
 
       try {
@@ -766,8 +718,6 @@ function openApp(id) {
         msgScript.textContent = `function message(type, data){ window.parent.postMessage({ type, data }, "*"); }`;
         iframeDoc.head.appendChild(msgScript);
 
-        // Перехват кликов по внешним ссылкам: вместо навигации внутри самого
-        // приложения — просим KittenOS открыть их новой вкладкой в браузере.
         if (id !== "cat-browser") {
           const linkScript = iframeDoc.createElement("script");
           linkScript.textContent = `
@@ -807,11 +757,10 @@ function openApp(id) {
     document.getElementById("KittenOS").appendChild(iframe);
   }
 
-  // 4. Секрет плавности: display меняется мгновенно, а класс visible с микрозадержкой
   iframe.style.display = "block";
   
   requestAnimationFrame(() => {
-    // Ждем следующего кадра отрисовки, чтобы браузер успел применить display: block
+    
     requestAnimationFrame(() => {
       iframe.classList.add("visible");
     });
@@ -823,7 +772,6 @@ function openApp(id) {
     function installHtml() {
   const installer = document.getElementById("app-installer");
   
-  //   ï¿½ ,   ï¿½ 
   if (installer.style.display === "none" || installer.style.display === "") {
     installer.style.display = "block";
   } else {
@@ -852,7 +800,6 @@ async function install() {
     let filesMap = {};
     let htmlContent = "";
 
-    // Обработка ZIP-архива
     if (uploadedFiles.length === 1 && uploadedFiles[0].name.endsWith('.zip')) {
       const zipFile = uploadedFiles[0];
       const jszip = new JSZip();
@@ -866,12 +813,11 @@ async function install() {
 
           const pureName = relativePath.split('/').pop();
           
-          // Проверяем, является ли файл картинкой/текстурой
           const isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(pureName);
 
           let promise;
           if (isImage) {
-            // Читаем картинки как бинарный Base64
+            
             promise = file.async("base64").then((base64) => {
               let ext = pureName.split('.').pop().toLowerCase();
               if (ext === "jpg") ext = "jpeg";
@@ -882,7 +828,7 @@ async function install() {
               filesMap[relativePath] = dataUrl;
             });
           } else {
-            // Читаем код (.html, .js, .css) как текст
+            
             promise = file.async("string").then((content) => {
               if (pureName.endsWith('.html')) {
                 htmlContent = content;
@@ -898,7 +844,7 @@ async function install() {
       await Promise.all(promises);
 
     } else {
-      // Стандартная логика KittenOS для обычных файлов
+      
       const htmlFile = uploadedFiles.find(f => f.name.endsWith('.html'));
       if (!htmlFile) {
         showInfoBox("One of these files must be html!");
@@ -918,11 +864,9 @@ async function install() {
       return;
     }
 
-    // Парсинг структуры HTML
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // Вспомогательная функция для замены путей картинок в CSS-строках url(...)
     const replaceUrlsInCss = (cssText) => {
       let updatedCss = cssText;
       for (let key in filesMap) {
@@ -935,7 +879,6 @@ async function install() {
       return updatedCss;
     };
 
-    // 1. Инжект внешних стилей + замена текстур в них
     const links = doc.querySelectorAll('link[rel="stylesheet"]');
     links.forEach(link => {
       const href = link.getAttribute('href');
@@ -943,7 +886,7 @@ async function install() {
         const pureHref = href.split('/').pop();
         let styleContent = filesMap[href] || filesMap[pureHref] || filesMap['./' + pureHref];
         if (styleContent) {
-          styleContent = replaceUrlsInCss(styleContent); // Меняем url('картинка.png') на base64
+          styleContent = replaceUrlsInCss(styleContent); 
           const styleTag = doc.createElement('style');
           styleTag.textContent = styleContent;
           link.replaceWith(styleTag);
@@ -951,12 +894,10 @@ async function install() {
       }
     });
 
-    // 2. Замена текстур в уже имеющихся внутри HTML тегах <style>
     doc.querySelectorAll('style').forEach(styleTag => {
       styleTag.textContent = replaceUrlsInCss(styleTag.textContent);
     });
 
-    // 3. Инжект скриптов из <script src="..."></>
     const scripts = doc.querySelectorAll('script[src]');
     scripts.forEach(script => {
       const src = script.getAttribute('src');
@@ -972,7 +913,6 @@ async function install() {
       }
     });
 
-    // 4. Инжект текстур прямо в теги <img> внутри игры
     doc.querySelectorAll('img[src]').forEach(img => {
       const src = img.getAttribute('src');
       if (src) {
@@ -984,7 +924,6 @@ async function install() {
       }
     });
 
-    // 5. Инжект текстур в инлайновые стили элементов (например: style="background: url(...)")
     doc.querySelectorAll('[style]').forEach(el => {
       let styleAttr = el.getAttribute('style');
       if (styleAttr && styleAttr.includes('url(')) {
@@ -992,11 +931,9 @@ async function install() {
       }
     });
 
-    // Сборка итогового Blob (принудительно UTF-8)
     const finalHtmlString = doc.documentElement.outerHTML;
     const finalBlob = new Blob([finalHtmlString], { type: 'text/html;charset=utf-8' });
 
-    // Сохранение и рендер в систему
     const blobUrl = URL.createObjectURL(finalBlob);
     const newApp = {
       id: idInput,
@@ -1010,7 +947,6 @@ async function install() {
     renderApps();
     saveAppToDB(newApp);
 
-    // Очистка формы инсталлятора
     document.getElementById("ins-id").value = "";
     document.getElementById("ins-name").value = "";
     document.getElementById("ins-icon").value = "";
@@ -1025,7 +961,6 @@ async function install() {
   }
 }
 
-// Хелпер для асинхронного чтения файлов
 function readFileContent(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1042,9 +977,8 @@ function closeApp() {
     document.getElementById(openedApp).classList.remove('nowOp')
     
     if (iframe) {
-      iframe.classList.remove("visible"); // Убираем видимость (запускается CSS-анимация)
+      iframe.classList.remove("visible"); 
       
-      // Удаляем из DOM только тогда, когда анимация полностью отработала (500мс)
       setTimeout(() => {
         iframe.remove();
       }, 500);
@@ -1143,9 +1077,6 @@ window.addEventListener('message', function(event) {
   }
 });
 
-// Ретрансляция запроса "открой ссылку в браузере" от произвольного приложения
-// в iframe приложения cat-browser (приложения не могут слать сообщения друг
-// другу напрямую, только через родительское окно KittenOS).
 window.addEventListener('message', function(event) {
   const msg = event.data;
   if (!msg || typeof msg !== "object") return;
@@ -1162,14 +1093,14 @@ function openUrlInBrowser(url) {
   if (!iframe) return;
 
   if (hadIframe) {
-    // Браузер уже был открыт раньше - его скрипт точно готов принимать сообщения
+    
     try {
       iframe.contentWindow.postMessage({ type: "catOpenNewTab", url: url }, "*");
     } catch (e) {
       console.error("Failed to send URL to browser app:", e);
     }
   } else {
-    // Iframe только что создан - дожидаемся полной загрузки apps/browser.html
+    
     iframe.addEventListener("load", function onLoad() {
       iframe.removeEventListener("load", onLoad);
       iframe.contentWindow.postMessage({ type: "catOpenNewTab", url: url }, "*");
@@ -1180,15 +1111,12 @@ function openUrlInBrowser(url) {
 document.querySelector('#dev-switch').addEventListener('change', function() {
   try {
     if (this.checked) {
-      // Включаем в основной системе
+      
       eruda.init();
       eruda.remove('elements');
       eruda.get().config.set('displaySize', 100);
       eruda.util.evalCss.setTheme("Material Oceanic");
 
-      // Включаем в текущем открытом iframe (если он есть и он доверенный —
-      // недоверенные приложения в sandbox без allow-same-origin не дают
-      // доступа к contentDocument, это ожидаемо, а не ошибка)
       if (openedApp) {
         const iframe = document.getElementById("iframe_" + openedApp);
         const isOpenedAppSystem = (openedApp === "cat-s_maps" || openedApp === "cat-s_pres" || openedApp === "cat-weather" || openedApp === "cat-files" || openedApp === "cat-camera" || openedApp === "cat-gallery");
@@ -1211,7 +1139,7 @@ document.querySelector('#dev-switch').addEventListener('change', function() {
         }
       }
     } else {
-      // Выключаем везде
+      
       eruda.destroy();
       if (openedApp) {
         const iframe = document.getElementById("iframe_" + openedApp);
@@ -1226,9 +1154,8 @@ if (iframe && iframe.contentWindow?.eruda) {
   }
 });
 
-// Функция удаления приложения
 function deleteApp(id, e) {
-  if (e) e.stopPropagation(); // Предотвращаем запуск самого приложения при клике на удаление
+  if (e) e.stopPropagation(); 
 
   if (!confirm("Are you shure want to delete this app?")) return;
 
@@ -1238,11 +1165,10 @@ function deleteApp(id, e) {
     store.delete(id);
     
     tx.oncomplete = () => {
-      // Удаляем из локального массива и перерисовываем
+      
       applications = applications.filter(app => app.id !== id);
       renderApps();
       
-      // Если удаляемое приложение было открыто, закрываем его iframe
       const iframe = document.getElementById("iframe_" + id);
       if (iframe) iframe.remove();
       if (openedApp === id) openedApp = null;
@@ -1291,14 +1217,11 @@ const batteryEl = document.getElementById('battery');
             showInfoBox("Purr!")
         }
     })
-// SYSTEM INITIALIZATION //
-// Даем LightningFS микросекунду на асинхронную сборку promises
+
 requestAnimationFrame(() => {
     initSystem();
 });
 
-    
-    ///Server workers///
     if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
