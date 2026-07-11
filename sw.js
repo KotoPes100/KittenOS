@@ -2,7 +2,7 @@ const CACHE_NAME = 'kittentos-v1';
 
  const ASSETS = [
    './',
-   'index.html',
+   './index.html',
    'library/eruda.js',
    'library/lightning-fs.min.js',
    'apps/files.html',
