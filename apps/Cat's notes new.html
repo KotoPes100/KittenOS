@@ -1,0 +1,913 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>🐈cat's notes📝</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/mdn-like.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neo.min.css">
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: deepskyblue;
+  }
+  #main {
+    width: 100%;
+    height: calc(100vh - 40px);
+    box-sizing: border-box;
+    outline: none;
+    resize: none;
+    font-family: monospace;
+    --tag-color: #0066cc;
+    --attr-color: #bf6900;
+    --string-color: #008000;
+    --comment-color: #808080;
+    --keyword-color: #a31515;
+    --css-prop: #008080;
+    --number-color: #098658;
+  }
+  .toolbar {
+    font-family: sans-serif;
+    font-size: 22px;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(0,0,0,0.1);
+  }
+  .toolbar button, .toolbar input, .toolbar select {
+    height: 32px;
+    font-size: 14px;
+    border: 1.5px solid #00ffcc;
+    background: linear-gradient(to bottom, #00ffcc, lightgreen);
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+  }
+  #saveBtn { border-color: #00ffcc; background: linear-gradient(to bottom, #00ffcc, lightgreen); }
+  #openBtn { border-color: orange; background: linear-gradient(to bottom, yellow, orange); }
+  #previewBtn { border-color: #ff6600; background: linear-gradient(to bottom, #ff9933, #ff6600); color: white; }
+  #searchBtn { border-color: #00ffcc; background: linear-gradient(to bottom, #00ffcc, lightgreen); }
+  #pathDisplay { 
+    flex: 1; 
+    min-width: 120px;
+    background: rgba(255,255,255,0.3);
+    padding: 0 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    color: #003;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  #fileSelect {
+    min-width: 120px;
+    max-width: 200px;
+  }
+  #nameInput {
+    min-width: 100px;
+    max-width: 180px;
+  }
+  #txtInput {
+    width: 55px;
+  }
+.CodeMirror, .CodeMirror * {
+  font-size: 14px !important;
+  font-family: monospace !important;
+}
+.CodeMirror{ height: 100%; }
+
+#searchContainer {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #2a2a2a;
+  padding: 8px 12px;
+  z-index: 10001;
+  border-top: 2px solid #00ffcc;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#searchContainer.active {
+  display: flex;
+}
+#searchContainer input {
+  background: #3a3a3a;
+  color: white;
+  border: 1px solid #555;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  flex: 1;
+  min-width: 100px;
+}
+#searchContainer input:focus {
+  border-color: #00ffcc;
+}
+#searchContainer button {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+#searchContainer button:hover {
+  background: #666;
+}
+#searchContainer .search-info {
+  color: #aaa;
+  font-size: 13px;
+  min-width: 60px;
+}
+.search-highlight {
+  background: deepskyblue !important;
+  color: #000 !important;
+}
+.search-highlight-current {
+  background: blue !important;
+  color: #fff !important;
+}
+
+#previewContainer {
+  display: none;
+  position: fixed;
+  top: 40px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 10000;
+  flex-direction: column;
+}
+#previewContainer.active {
+  display: flex;
+}
+#previewToolbar {
+  background: #335;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+#previewToolbar button {
+  background: #557;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+#previewToolbar button:hover {
+  background: #779;
+}
+#previewToolbar input {
+  flex: 1;
+  background: #446;
+  color: white;
+  border: 1px solid #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+#previewFrame {
+  flex: 1;
+  border: none;
+  width: 100%;
+}
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <select id="fileSelect" onchange="switchFile()">
+    <option value="">📄 New file</option>
+  </select>
+  <input id="nameInput" type="text" placeholder="File name">
+  <input id="txtInput" type="text" value="html" placeholder="ext" title="Extension">
+  <button id="saveBtn" onclick="saveFile()" title="Save to KittenOS FS">💾</button>
+  <button id="openBtn" onclick="openExternalFile()" title="Open from device">🗂</button>
+  <button id="previewBtn" onclick="togglePreview()" title="Preview">▶️</button>
+  <button id="searchBtn" onclick="toggleSearch()" title="Search in file">🔍</button>
+  <div id="pathDisplay">📁 ~/documents/</div>
+</div>
+<div id="main" placeholder="Start typing..."></div>
+
+<div id="searchContainer">
+  <input id="searchInput" type="text" placeholder="Search..." oninput="doSearch()">
+  <button onclick="searchPrev()">⬆</button>
+  <button onclick="searchNext()">⬇</button>
+  <span id="searchInfo" class="search-info">0/0</span>
+  <button onclick="toggleSearch()" style="background: #822;">✕</button>
+</div>
+
+<div id="previewContainer">
+  <div id="previewToolbar">
+    <button onclick="closePreview()">✕ Close</button>
+    <button onclick="refreshPreview()">🔄 Refresh</button>
+  </div>
+  <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+</div>
+
+<script>
+let fs = null;
+let currentFileId = '';
+let currentPath = '/documents/';
+let editor;
+let isTrusted = false;
+let lastSavedContent = '';
+let isLoading = false;
+
+let searchQuery = '';
+let searchMatches = [];
+let searchIndex = -1;
+let searchMarkers = [];
+
+const scrollPositions = JSON.parse(localStorage.getItem('cat_notes_scroll_positions') || '{}');
+
+function isInKittenOS() {
+  return typeof window.parent !== 'undefined' && window.parent.fs !== undefined;
+}
+
+function getFS() {
+  if (isInKittenOS()) {
+    return window.parent.fs;
+  }
+  return {
+    promises: {
+      readFile: async (path) => {
+        const content = localStorage.getItem('kitten_fs_' + path);
+        if (content === null) throw new Error('File not found');
+        return new TextEncoder().encode(content);
+      },
+      writeFile: async (path, data) => {
+        const content = typeof data === 'string' ? data : new TextDecoder().decode(data);
+        localStorage.setItem('kitten_fs_' + path, content);
+      },
+      readdir: async (path) => {
+        const files = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('kitten_fs_' + path)) {
+            files.push(key.replace('kitten_fs_' + path, ''));
+          }
+        }
+        return files;
+      },
+      mkdir: async (path) => {},
+      unlink: async (path) => {
+        localStorage.removeItem('kitten_fs_' + path);
+      },
+      rename: async (oldPath, newPath) => {
+        const content = localStorage.getItem('kitten_fs_' + oldPath);
+        if (content !== null) {
+          localStorage.setItem('kitten_fs_' + newPath, content);
+          localStorage.removeItem('kitten_fs_' + oldPath);
+        }
+      }
+    }
+  };
+}
+
+function checkTrusted() {
+  try {
+    if (isInKittenOS() && window.parent.trustedAppsWhitelist) {
+      const appId = 'cat-notes';
+      isTrusted = window.parent.trustedAppsWhitelist.includes(appId);
+    }
+  } catch(e) {}
+  return isTrusted;
+}
+
+function getLanguageFromExt(ext) {
+  ext = ext.toLowerCase();
+  if (ext === 'html' || ext === 'htm') return 'htmlmixed';
+  if (ext === 'css') return 'css';
+  if (ext === 'js' || ext === 'javascript') return 'javascript';
+  if (ext === 'json') return 'javascript';
+  if (ext === 'xml') return 'xml';
+  if (ext === 'md') return 'htmlmixed';
+  return 'htmlmixed';
+}
+
+async function getAllFiles() {
+  try {
+    const fs = getFS();
+    const files = {};
+    const entries = await fs.promises.readdir(currentPath);
+    for (const entry of entries) {
+      if (entry.startsWith('.')) continue;
+      const fullPath = currentPath + entry;
+      try {
+        const content = await fs.promises.readFile(fullPath);
+        const parts = entry.split('.');
+        const ext = parts.length > 1 ? parts.pop() : 'txt';
+        const name = parts.join('.');
+        files[entry] = {
+          content: new TextDecoder().decode(content),
+          name: name || entry,
+          ext: ext,
+          path: fullPath,
+          id: entry
+        };
+      } catch(e) {}
+    }
+    return files;
+  } catch(e) {
+    return {};
+  }
+}
+
+function saveScrollPosition(fileId) {
+  if (!editor || !fileId || isLoading) return;
+  
+  const scrollInfo = editor.getScrollInfo();
+  scrollPositions[fileId] = {
+    scrollTop: scrollInfo.top,
+    scrollLeft: scrollInfo.left
+  };
+  
+    localStorage.setItem('cat_notes_last_file', fileId);
+
+  localStorage.setItem('cat_notes_scroll_positions', JSON.stringify(scrollPositions));
+}
+
+function restoreScrollPosition(fileId) {
+  if (!editor || !fileId) return;
+  
+  const pos = scrollPositions[fileId];
+  if (pos) {
+    editor.scrollTo(pos.scrollLeft || 0, pos.scrollTop || 0);
+  } else {
+    editor.scrollTo(0, 0);
+  }
+}
+
+async function switchFile() {
+  if (currentFileId) {
+    saveScrollPosition(currentFileId);
+  }
+  
+  clearSearch();
+  
+  const select = document.getElementById('fileSelect');
+  const selectedValue = select.value;
+  
+  if (selectedValue === '') {
+    await createNewFileFromSelect();
+    return;
+  }
+  
+  currentFileId = selectedValue;
+  await loadCurrentFile();
+}
+
+async function createNewFileFromSelect() {
+  const nameInput = document.getElementById('nameInput').value.trim() || '';
+  const extInput = document.getElementById('txtInput').value.trim() || '';
+  const filename = nameInput + '.' + extInput;
+  
+  const files = await getAllFiles();
+  if (files[filename]) {
+    if (!confirm(`File "${filename}" already exists. Overwrite?`)) {
+      const select = document.getElementById('fileSelect');
+      if (currentFileId) {
+        select.value = currentFileId;
+      } else {
+        select.value = '';
+      }
+      return;
+    }
+  }
+  
+  const fs = getFS();
+  const fullPath = currentPath + filename;
+  await fs.promises.writeFile(fullPath, '');
+  
+  currentFileId = filename;
+  await updateFileSelect();
+  document.getElementById('fileSelect').value = currentFileId;
+  await loadCurrentFile();
+  
+  if (editor) {
+    editor.setValue('');
+    lastSavedContent = '';
+    editor.focus();
+  }
+}
+
+async function loadCurrentFile() {
+  if (!currentFileId) {
+    if (editor) {
+      isLoading = true;
+      editor.setValue('');
+      isLoading = false;
+    }
+    document.getElementById('nameInput').value = '';
+    document.getElementById('txtInput').value = '';
+    updatePathDisplay('');
+    lastSavedContent = '';
+    return;
+  }
+
+  try {
+    isLoading = true;
+    const fs = getFS();
+    const fullPath = currentPath + currentFileId;
+    const data = await fs.promises.readFile(fullPath);
+    const content = new TextDecoder().decode(data);
+    
+    const parts = currentFileId.split('.');
+    const ext = parts.length > 1 ? parts.pop() : 'txt';
+    const name = parts.join('.') || currentFileId;
+    
+    if (editor) {
+      editor.setValue(content);
+      lastSavedContent = content;
+      updateEditorMode(ext);
+      
+      setTimeout(() => {
+        restoreScrollPosition(currentFileId);
+        isLoading = false;
+      }, 100);
+    }
+    document.getElementById('nameInput').value = name;
+    document.getElementById('txtInput').value = ext;
+    updatePathDisplay(currentFileId);
+  } catch(e) {
+    console.error('Failed to load file:', e);
+    if (editor) {
+      isLoading = true;
+      editor.setValue('');
+      isLoading = false;
+    }
+    document.getElementById('nameInput').value = '';
+    document.getElementById('txtInput').value = '';
+    lastSavedContent = '';
+  }
+}
+
+async function updateFileSelect() {
+  const select = document.getElementById('fileSelect');
+  const files = await getAllFiles();
+  
+  select.innerHTML = '<option value="">📄 New file</option>';
+  Object.keys(files).forEach(id => {
+    const file = files[id];
+    const option = document.createElement('option');
+    option.value = id;
+    const displayExt = file.ext || 'txt';
+    option.textContent = `${file.name || id}.${displayExt}`;
+    select.appendChild(option);
+  });
+  
+  if (currentFileId) {
+    select.value = currentFileId;
+  }
+}
+
+function updatePathDisplay(filename) {
+  const el = document.getElementById('pathDisplay');
+  if (filename) {
+    el.textContent = `📁 ${currentPath}${filename}`;
+  } else {
+    el.textContent = `📁 ${currentPath}`;
+  }
+}
+
+async function saveFile() {
+  if (!editor) return;
+  
+  if (!currentFileId) {
+    const nameInput = document.getElementById('nameInput').value.trim() || '';
+    const extInput = document.getElementById('txtInput').value.trim() || '';
+    const filename = nameInput + '.' + extInput;
+    
+    const fs = getFS();
+    const fullPath = currentPath + filename;
+    await fs.promises.writeFile(fullPath, '');
+    currentFileId = filename;
+    await updateFileSelect();
+    document.getElementById('fileSelect').value = currentFileId;
+    await loadCurrentFile();
+  }
+  
+  const nameInput = document.getElementById('nameInput').value.trim() || '';
+  const extInput = document.getElementById('txtInput').value.trim() || '';
+  const filename = nameInput + '.' + extInput;
+  const content = editor.getValue();
+  
+  if (content === lastSavedContent && currentFileId === filename) {
+    if (isInKittenOS()) {
+      window.parent.showInfoBox('No changes to save');
+    } else {
+      alert('No changes to save');
+    }
+    return;
+  }
+  
+  try {
+    const fs = getFS();
+    const fullPath = currentPath + filename;
+    
+    if (currentFileId && currentFileId !== filename) {
+      const oldPath = currentPath + currentFileId;
+      try {
+        await fs.promises.unlink(oldPath);
+        delete scrollPositions[currentFileId];
+        localStorage.setItem('cat_notes_scroll_positions', JSON.stringify(scrollPositions));
+      } catch(e) {}
+    }
+    
+    await fs.promises.writeFile(fullPath, content);
+    lastSavedContent = content;
+    
+    saveScrollPosition(filename);
+    
+    currentFileId = filename;
+    await updateFileSelect();
+    document.getElementById('fileSelect').value = currentFileId;
+    updatePathDisplay(filename);
+    
+    clearSearch();
+    
+    if (isInKittenOS()) {
+      window.parent.showInfoBox('✅ File saved: ' + filename);
+    } else {
+      alert('File saved: ' + filename);
+    }
+  } catch(e) {
+    console.error('Save failed:', e);
+    alert('Failed to save file: ' + e.message);
+  }
+}
+
+function openFileFromKittenOS(path) {
+  const filename = path.split('/').pop();
+  if (!filename) return;
+  
+  getAllFiles().then(files => {
+    if (files[filename]) {
+      currentFileId = filename;
+      document.getElementById('fileSelect').value = currentFileId;
+      loadCurrentFile().then(() => {
+        if (isInKittenOS()) {
+          window.parent.showInfoBox('📂 Opened: ' + filename);
+        }
+      });
+    } else {
+      if (isInKittenOS()) {
+        window.parent.showInfoBox('❌ File not found: ' + filename);
+      }
+    }
+  });
+}
+
+window.addEventListener('message', function(event) {
+  const msg = event.data;
+  if (msg && msg.type === 'openFile' && msg.data && msg.data.path) {
+    openFileFromKittenOS(msg.data.path);
+  }
+});
+
+function openExternalFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '*/*';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target.result;
+        const filename = file.name;
+        
+        const fs = getFS();
+        const fullPath = currentPath + filename;
+        await fs.promises.writeFile(fullPath, content);
+        
+        currentFileId = filename;
+        await updateFileSelect();
+        document.getElementById('fileSelect').value = currentFileId;
+        await loadCurrentFile();
+        
+        if (isInKittenOS()) {
+          window.parent.showInfoBox('📂 File opened: ' + filename);
+        }
+      } catch(err) {
+        alert('Failed to import file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function toggleSearch() {
+  const container = document.getElementById('searchContainer');
+  const input = document.getElementById('searchInput');
+  
+  if (container.classList.contains('active')) {
+    container.classList.remove('active');
+    clearSearch();
+  } else {
+    container.classList.add('active');
+    input.focus();
+    input.select();
+    doSearch();
+  }
+}
+
+function clearSearch() {
+  if (searchMarkers.length > 0) {
+    searchMarkers.forEach(marker => marker.clear());
+    searchMarkers = [];
+  }
+  searchMatches = [];
+  searchIndex = -1;
+  document.getElementById('searchInfo').textContent = '0/0';
+}
+
+function doSearch() {
+  clearSearch();
+  
+  const input = document.getElementById('searchInput');
+  searchQuery = input.value.trim();
+  
+  if (!searchQuery || !editor) {
+    document.getElementById('searchInfo').textContent = '0/0';
+    return;
+  }
+  
+  const content = editor.getValue();
+  const lines = content.split('\n');
+  const query = searchQuery.toLowerCase();
+  
+  searchMatches = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    let idx = line.toLowerCase().indexOf(query);
+    while (idx !== -1) {
+      searchMatches.push({
+        line: i,
+        ch: idx,
+        end: idx + searchQuery.length
+      });
+      idx = line.toLowerCase().indexOf(query, idx + 1);
+    }
+  }
+  
+  searchMarkers = searchMatches.map((match, index) => {
+    const from = { line: match.line, ch: match.ch };
+    const to = { line: match.line, ch: match.end };
+    const className = index === 0 ? 'search-highlight-current' : 'search-highlight';
+    return editor.markText(from, to, { className: className });
+  });
+  
+  searchIndex = searchMatches.length > 0 ? 0 : -1;
+  updateSearchInfo();
+  
+  if (searchMatches.length > 0) {
+    goToMatch(0);
+  }
+}
+
+function updateSearchInfo() {
+  const total = searchMatches.length;
+  const current = searchIndex + 1;
+  document.getElementById('searchInfo').textContent = total > 0 ? `${current}/${total}` : '0/0';
+}
+
+function goToMatch(index) {
+  if (searchMatches.length === 0 || index < 0 || index >= searchMatches.length) return;
+  
+  searchIndex = index;
+  const match = searchMatches[index];
+  
+  searchMarkers.forEach((marker, i) => {
+    marker.clear();
+  });
+  
+  searchMarkers = searchMatches.map((m, i) => {
+    const from = { line: m.line, ch: m.ch };
+    const to = { line: m.line, ch: m.end };
+    const className = i === searchIndex ? 'search-highlight-current' : 'search-highlight';
+    return editor.markText(from, to, { className: className });
+  });
+  
+  const pos = { line: match.line, ch: match.ch };
+  editor.scrollIntoView(pos, 50);
+  editor.setCursor(pos);
+  
+  updateSearchInfo();
+}
+
+function searchNext() {
+  if (searchMatches.length === 0) return;
+  const next = (searchIndex + 1) % searchMatches.length;
+  goToMatch(next);
+}
+
+function searchPrev() {
+  if (searchMatches.length === 0) return;
+  const prev = (searchIndex - 1 + searchMatches.length) % searchMatches.length;
+  goToMatch(prev);
+}
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    toggleSearch();
+  }
+  if (e.key === 'Escape' && document.getElementById('searchContainer').classList.contains('active')) {
+    toggleSearch();
+  }
+  if (e.key === 'Enter' && document.getElementById('searchContainer').classList.contains('active')) {
+    e.preventDefault();
+    if (e.shiftKey) {
+      searchPrev();
+    } else {
+      searchNext();
+    }
+  }
+});
+
+let previewActive = false;
+
+function togglePreview() {
+  const container = document.getElementById('previewContainer');
+  previewActive = !previewActive;
+  
+  if (previewActive) {
+    container.classList.add('active');
+    refreshPreview();
+  } else {
+    container.classList.remove('active');
+  }
+}
+
+function closePreview() {
+  const container = document.getElementById('previewContainer');
+  container.classList.remove('active');
+  previewActive = false;
+}
+
+function refreshPreview() {
+  if (!editor) return;
+  
+  const content = editor.getValue();
+  const ext = document.getElementById('txtInput').value.trim().toLowerCase() || 'html';
+  const frame = document.getElementById('previewFrame');
+  const urlInput = document.getElementById('previewUrlInput');
+  
+
+  if (ext === 'html' || ext === 'htm') {
+    const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    frame.src = url;
+    urlInput.value = 'HTML Preview (local)';
+    
+    frame.onload = function() {
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  } else {
+    const textBlob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(textBlob);
+    frame.src = url;
+    urlInput.value = 'Text Preview (local)';
+    
+    frame.onload = function() {
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  }
+}
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+    e.preventDefault();
+    togglePreview();
+  }
+});
+
+function updateEditorMode(ext) {
+  const mode = getLanguageFromExt(ext);
+  if (editor) {
+    editor.setOption('mode', mode);
+    setTimeout(() => editor.refresh(), 50);
+  }
+}
+
+function initEditor() {
+  const mainEl = document.getElementById('main');
+  editor = CodeMirror(mainEl, {
+    value: '',
+    mode: 'htmlmixed',
+    lineNumbers: true,
+    theme: 'neo',
+    inputStyle: 'contenteditable', 
+    tabSize: 2,
+    lineWrapping: true,
+    styleActiveLine: true,
+    viewportMargin: Infinity,
+    autofocus: true,
+    extraKeys: {
+      "Ctrl-S": function() { saveFile(); },
+      "Cmd-S": function() { saveFile(); },
+      "Ctrl-F": function() { toggleSearch(); },
+      "Cmd-F": function() { toggleSearch(); },
+      "Ctrl-Shift-P": function() { togglePreview(); },
+      "Cmd-Shift-P": function() { togglePreview(); }
+    }
+  });
+  
+  editor.on('scroll', function() {
+    if (currentFileId && !isLoading) {
+      saveScrollPosition(currentFileId);
+    }
+  });
+}
+
+checkTrusted();
+
+window.addEventListener('load', async () => {
+  await updateFileSelect();
+  initEditor();
+  
+  try {
+    const fs = getFS();
+    await fs.promises.mkdir(currentPath);
+  } catch(e) {}
+  
+  const lastFileId = localStorage.getItem('cat_notes_last_file');
+  if (lastFileId) {
+    const files = await getAllFiles();
+    if (files[lastFileId]) {
+      currentFileId = lastFileId;
+      document.getElementById('fileSelect').value = currentFileId;
+      await loadCurrentFile();
+    } else {
+      currentFileId = '';
+      document.getElementById('fileSelect').value = '';
+      await loadCurrentFile();
+    }
+  } else {
+    currentFileId = '';
+    document.getElementById('fileSelect').value = '';
+    await loadCurrentFile();
+  }
+  
+  window.addEventListener('beforeunload', () => {
+    if (currentFileId) {
+      saveScrollPosition(currentFileId);
+      localStorage.setItem('cat_notes_last_file', currentFileId);
+    }
+  });
+  
+  document.getElementById('nameInput').addEventListener('change', () => {
+    if (currentFileId) {
+      const name = document.getElementById('nameInput').value.trim() || '';
+      const ext = document.getElementById('txtInput').value.trim() || '';
+      const newFilename = name + '.' + ext;
+      if (newFilename !== currentFileId) {
+        updatePathDisplay(newFilename);
+      }
+    }
+  });
+  
+  document.getElementById('txtInput').addEventListener('change', () => {
+    const ext = document.getElementById('txtInput').value.trim() || '';
+    if (editor) {
+      updateEditorMode(ext);
+    }
+    if (currentFileId) {
+      const name = document.getElementById('nameInput').value.trim() || '';
+      const newFilename = name + '.' + ext;
+      updatePathDisplay(newFilename);
+    }
+  });
+  
+  window.addEventListener('resize', () => {
+    if (editor) editor.refresh();
+  });
+});
+
+</script>
+</body>
+</html>
