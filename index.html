@@ -310,9 +310,40 @@ overflow: auto;
   overflow-y: auto;
 }
 .tooltip {  margin: 5px 65px; display: none; z-index: 99999999;  }
+#pinPan button{
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
   </style>
 </head>
 <body>
+      <panel id="pinPan" style="position: fixed; top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) !important; display: none; font-size: 24px;">
+    <div class="display-container">
+      <div id="pin">🔒</div>
+    </div>
+    
+    <div class="keys">
+      <button onclick="AddToPin('1')">1</button>
+      <button onclick="AddToPin('2')">2</button>
+      <button onclick="AddToPin('3')">3</button><br>
+
+      <button onclick="AddToPin('4')">4</button>
+      <button onclick="AddToPin('5')">5</button>
+      <button onclick="AddToPin('6')">6</button><br>
+
+      <button onclick="AddToPin('7')">7</button>
+      <button onclick="AddToPin('8')">8</button>
+      <button onclick="AddToPin('9')">9</button><br>
+
+      <button style="color: red;" onclick="clearPin()">C</button>
+      <button onclick="AddToPin('0')">0</button>
+      <button onclick="writePin()">=></button>
+    </div>
+  </panel>
+  
   <div id="hiPan"><h1>Welcome to KittenOS!</h1><br><strong>Loading...</strong></div>
   
   <div id="KittenOS" style="display: block; visibility: hidden;">
@@ -364,9 +395,10 @@ overflow: auto;
       <panel>🔧Dev tools<input type="checkbox" id="dev-switch"></panel>
       <button onclick="installHtml()" style="color: #034;">⬇ App installer</button><br>
       <button onclick="backgroundImg()" style="color: #043;">Change Wallpaper</button><br>
+      <button onclick="openPinUp()" style="color: #904;">PIN-code settings</button><br>
       <button onclick="location.reload()">↻ Reload system</button>
 <br>
-  <small>v.1.1</small>
+  <small>v.1.2</small>
     </panel>
 <panel id="app-installer" style="display: none;"><button onclick="installHtml()" style="color: red; position: absolute; top: 1px; right: 1px;">X</button>
   Select .html or .zip file<input type="file" id="ins-file" accept=".html, .zip"><br>
@@ -375,6 +407,14 @@ overflow: auto;
   App id <input type="text" id="ins-id" placeholder="App id"><br>
   App name <input type="text" id="ins-name" placeholder="My app"><br>
   <button onclick="install()">Install</button>
+</panel>
+
+<panel id="pinSets" style="position: fixed; top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) !important; display: none; ">
+    PIN-code settings
+    <button onclick="openPinUp()" style="color: red; position: absolute; top: 1px; right: 1px;">X</button><br>
+  <button style="color: green;" onclick="addPin()">Add or change PIN-code</button>
+  <button style="color: red;" onclick="delPin()">Delete PIN-code</button><br>
 </panel>
 
       <panel style="position: fixed; top: 50% !important; left: 50% !important;
@@ -449,8 +489,6 @@ function saveAppToDB(app) {
     async function initSystem() { 
       const HiPan = document.getElementById("hiPan"); 
       
-await initBackground().catch(console.error);
-
   applications.push({
     id: "cat-files",
     name: "Files",
@@ -525,9 +563,15 @@ try {
   window.fs.promises.mkdir('/downloads').catch(() => {});
   window.fs.promises.mkdir('/images').catch(() => {});
   window.fs.promises.mkdir('/audio').catch(() => {});
+  
+  await initBackground().catch(console.error);
 
   HiPan.style.visibility = "hidden";
-  document.getElementById("KittenOS").style.visibility = "visible";
+if (hasPin()) {
+    showLockScreen(); 
+  } else {
+    document.getElementById("KittenOS").style.visibility = "visible";
+  }
   openApp("cat-files")
 }
 
@@ -808,6 +852,16 @@ function openApp(id) {
     bgpan.style.display = "block";
   } else {
     bgpan.style.display = "none";
+  }
+}
+
+    function openPinUp() {
+  const pinSets = document.getElementById("pinSets");
+  
+  if (pinSets.style.display === "none" || pinSets.style.display === "") {
+    pinSets.style.display = "block";
+  } else {
+    pinSets.style.display = "none";
   }
 }
 
@@ -1253,6 +1307,134 @@ const batteryEl = document.getElementById('battery');
 requestAnimationFrame(() => {
     initSystem();
 });
+
+// --- PIN-code Logic (with SHA-256 Encryption) ---
+
+let currentPinInput = ""; // Stores entered digits
+
+// Helper to hash PIN using native SHA-256
+async function hashPin(pin) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Check if PIN is set in the system
+function hasPin() {
+  return localStorage.getItem("catos_pin") !== null;
+}
+
+// Show the lock screen
+function showLockScreen() {
+  const pinPan = document.getElementById("pinPan");
+  const kittenOS = document.getElementById("KittenOS");
+  
+  kittenOS.style.visibility = "hidden";
+  pinPan.style.display = "block";
+  clearPin();
+}
+
+// Hide the lock screen
+function hideLockScreen() {
+  document.getElementById("pinPan").style.display = "none";
+  document.getElementById("KittenOS").style.visibility = "visible";
+}
+
+// Append digit on button press
+function AddToPin(num) {
+  if (currentPinInput.length < 8) { // Maximum length of 8 digits
+    currentPinInput += num;
+    document.getElementById("pin").textContent = "• ".repeat(currentPinInput.length);
+  }
+}
+
+// Clear the input field
+function clearPin() {
+  currentPinInput = "";
+  document.getElementById("pin").textContent = "🔒";
+}
+
+// Verify PIN on "=>" button press
+async function writePin() {
+  const savedPinHash = localStorage.getItem("catos_pin");
+  
+  if (savedPinHash) {
+    const inputHash = await hashPin(currentPinInput);
+    if (inputHash === savedPinHash) {
+      hideLockScreen();
+    } else {
+      showInfoBox("Incorrect PIN!");
+      clearPin();
+    }
+  } else {
+    hideLockScreen();
+  }
+}
+
+// Settings: Create or change PIN
+async function addPin() {
+  // 1. If a PIN is already set, verify the old one first
+  if (hasPin()) {
+    const oldPin = prompt("Enter your CURRENT PIN to proceed:");
+    if (oldPin === null) return; // Cancelled
+
+    const oldHash = await hashPin(oldPin);
+    const savedHash = localStorage.getItem("catos_pin");
+
+    if (oldHash !== savedHash) {
+      showInfoBox("Incorrect current PIN! Action cancelled.");
+      return;
+    }
+  }
+
+  // 2. Ask for the new PIN
+  const newPin = prompt("Enter NEW PIN (digits only, min 4 digits):");
+  if (newPin === null) return; // Cancelled
+  
+  if (!/^\d+$/.test(newPin) || newPin.length < 4) {
+    showInfoBox("Error: PIN must be at least 4 digits long and contain only numbers!");
+    return;
+  }
+
+  // 3. Ask to confirm the new PIN
+  const confirmPin = prompt("Confirm your NEW PIN:");
+  if (confirmPin === null) return; // Cancelled
+
+  if (newPin !== confirmPin) {
+    showInfoBox("Error: PINs do not match! Try again.");
+    return;
+  }
+
+  // 4. Save to localStorage if everything matches
+  const encryptedPin = await hashPin(newPin);
+  localStorage.setItem("catos_pin", encryptedPin);
+  showInfoBox("PIN successfully updated!");
+  openPinUp(); // Closes setting window
+}
+
+// Settings: Remove PIN
+async function delPin() {
+  if (!hasPin()) {
+    showInfoBox("No PIN is currently set.");
+    return;
+  }
+  
+  const currentPin = prompt("Enter current PIN to confirm removal:");
+  if (currentPin === null) return; // Cancelled
+
+  const inputHash = await hashPin(currentPin);
+  const savedPinHash = localStorage.getItem("catos_pin");
+
+  if (inputHash === savedPinHash) {
+    localStorage.removeItem("catos_pin");
+    showInfoBox("PIN successfully removed!");
+    openPinUp(); // Closes setting window
+  } else {
+    showInfoBox("Incorrect PIN! Action cancelled.");
+  }
+}
 
 //Wallpaper//
 
