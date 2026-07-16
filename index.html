@@ -92,7 +92,8 @@ overflow: auto;
     }
 
 #apps {
-  height: calc(100vh - 5px);
+  height: calc(100% - 5px) !important;
+  max-height: calc(100% - 5px) !important;
   width: 60px !important;
   position: fixed;
   margin: 2.5px;
@@ -307,8 +308,8 @@ overflow: auto;
 .appIcon.nowOp {
     background: rgba(200, 0, 100, 0.2);
 }
-#applics {
-  max-height: calc(100vh - 60px);
+#applications {
+  max-height: calc(100% - 60px);
   border-radius: 30px;
   overflow-y: auto;
 }
@@ -352,7 +353,7 @@ overflow: auto;
   <div id="KittenOS" style="display: block; visibility: hidden;">
   <div id="toltc" style="margin: 5px 65px; z-index: 10000000;"></div>
     <panel id="apps">
-      <div id="applics"></div>
+      <div id="applications"></div>
       <button class="appIcon" onclick="openPan()" style="display: flex; position: fixed; bottom: 0px; left: 5px; align-items: center; justify-content: center;">
         <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">  
    <defs>
@@ -442,9 +443,9 @@ overflow: auto;
   <script>
       window.fs = new LightningFS('KittenOS_FS');
       
-    let __app = null;
-    let __pan = false;
-    let applics = [];
+    let openedApp = null;
+    let openedPan = false;
+    let applications = [];
     
     window.trustedAppsWhitelist = JSON.parse(localStorage.getItem('catos_trusted_apps') || '[]');
     
@@ -492,55 +493,55 @@ function saveAppToDB(app) {
     async function initSystem() { 
       const HiPan = document.getElementById("hiPan"); 
       
-  applics.push({
+  applications.push({
     id: "cat-files",
     name: "Files",
     icon: `📁`, 
     code: "apps/files.html"
   });
 
-      applics.push({
+      applications.push({
   id: "cat-gallery",
   name: "Gallery",
   icon: `🖼️`, 
   code: "apps/gallery.html"
 });
-  applics.push({
+  applications.push({
     id: "cat-camera",
     name: "camera",
     icon: `📷️`, 
     code: "apps/camera.html"
   });
   
-  applics.push({
+  applications.push({
     id: "cat-browser",
     name: "Oil Browser",
     icon: `🌐`, 
     code: "apps/browser.html"
   });
   
-    applics.push({
+    applications.push({
     id: "cat-calculator",
     name: "Calculator",
     icon: `+`, 
     code: "apps/calculator.html"
   });
   
-      applics.push({
+      applications.push({
     id: "cat-list",
     name: "List",
     icon: `📄`, 
     code: "apps/list.html"
   });
   
-applics.push({
+applications.push({
         id: "cat-s_maps",
         name: "cat's maps",
         icon: `🗺`, 
         code: "apps/cat_maps.html"
       });
       
-      applics.push({
+      applications.push({
         id: "cat-weather",
         name: "cat's weather",
         icon: `☂️`, 
@@ -554,7 +555,7 @@ try {
     savedApps.forEach(app => {
       if (app.file) {
         app.code = URL.createObjectURL(app.file);
-        applics.push(app);
+        applications.push(app);
       }
     });
   } catch (e) {
@@ -591,12 +592,12 @@ function showInfoBox(text, timeoutMs = 5000) {
 }
 
 function renderApps() {
-  const container = document.getElementById("applics");
+  const container = document.getElementById("applications");
   container.innerHTML = ""; 
   
   document.querySelectorAll('.app-tooltip').forEach(el => el.remove());
 
-  applics.forEach((app) => {
+  applications.forEach((app) => {
     const btn = document.createElement("button");
     btn.className = "appIcon";
     btn.id = app.id;
@@ -733,31 +734,31 @@ function openApp(id) {
   document.getElementById(id).classList.add('opened');
   document.getElementById(id).classList.add('nowOp');
   
-  if (__app === id) {
+  if (openedApp === id) {
     const currentIframe = document.getElementById("iframe_" + id);
-    document.getElementById(__app).classList.remove('nowOp')
+    document.getElementById(openedApp).classList.remove('nowOp')
     if (currentIframe) {
       currentIframe.classList.remove("visible"); 
       setTimeout(() => {
         currentIframe.style.display = "none"; 
       }, 500);
     }
-    __app = null;
+    openedApp = null;
     return;
   }
 
-  if (__app !== null) {
-    const oldIframe = document.getElementById("iframe_" + __app);
+  if (openedApp !== null) {
+    const oldIframe = document.getElementById("iframe_" + openedApp);
     if (oldIframe) {
       oldIframe.classList.remove("visible");
       oldIframe.style.display = "none"; 
     }
-    document.getElementById(__app).classList.remove('nowOp')
+    document.getElementById(openedApp).classList.remove('nowOp')
   }
 
   let iframe = document.getElementById("iframe_" + id);
   if (!iframe) {
-    const appData = applics.find(app => app.id === id);
+    const appData = applications.find(app => app.id === id);
     if (!appData) return;
 
     iframe = document.createElement("iframe");
@@ -835,7 +836,7 @@ function openApp(id) {
     });
   });
 
-  __app = id;
+  openedApp = id;
 }
     
     function installHtml() {
@@ -1032,7 +1033,7 @@ async function install() {
       file: finalBlob
     };
 
-    applics.push(newApp);
+    applications.push(newApp);
     renderApps();
     saveAppToDB(newApp);
 
@@ -1060,10 +1061,10 @@ function readFileContent(file) {
 }
 
 function closeApp() {
-  if (__app !== null) {
-    const iframe = document.getElementById("iframe_" + __app);
-    document.getElementById(__app).classList.remove('opened')
-    document.getElementById(__app).classList.remove('nowOp')
+  if (openedApp !== null) {
+    const iframe = document.getElementById("iframe_" + openedApp);
+    document.getElementById(openedApp).classList.remove('opened')
+    document.getElementById(openedApp).classList.remove('nowOp')
     
     if (iframe) {
       iframe.classList.remove("visible"); 
@@ -1072,16 +1073,16 @@ function closeApp() {
         iframe.remove();
       }, 500);
     }
-    __app = null;
+    openedApp = null;
   }
 }
  
     function openPan() {
-      if (__pan) {
-        __pan = false;
+      if (openedPan) {
+        openedPan = false;
         document.getElementById("play").style.display = "none";
       } else {
-        __pan = true;
+        openedPan = true;
         document.getElementById("play").style.display = "inline-block";
       }
     }
@@ -1206,10 +1207,10 @@ document.querySelector('#dev-switch').addEventListener('change', function() {
       eruda.get().config.set('displaySize', 100);
       eruda.util.evalCss.setTheme("Material Oceanic");
 
-      if (__app) {
-        const iframe = document.getElementById("iframe_" + __app);
-        const isOpenedAppSystem = (__app === "cat-s_maps" || __app === "cat-s_pres" || __app === "cat-weather" || __app === "cat-files" || __app === "cat-camera" || __app === "cat-gallery");
-        const isOpenedAppTrusted = isOpenedAppSystem || window.trustedAppsWhitelist.includes(__app);
+      if (openedApp) {
+        const iframe = document.getElementById("iframe_" + openedApp);
+        const isOpenedAppSystem = (openedApp === "cat-s_maps" || openedApp === "cat-s_pres" || openedApp === "cat-weather" || openedApp === "cat-files" || openedApp === "cat-camera" || openedApp === "cat-gallery");
+        const isOpenedAppTrusted = isOpenedAppSystem || window.trustedAppsWhitelist.includes(openedApp);
         if (iframe && isOpenedAppTrusted) {
           const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
           const iframeWin = iframe.contentWindow;
@@ -1230,8 +1231,8 @@ document.querySelector('#dev-switch').addEventListener('change', function() {
     } else {
       
       eruda.destroy();
-      if (__app) {
-        const iframe = document.getElementById("iframe_" + __app);
+      if (openedApp) {
+        const iframe = document.getElementById("iframe_" + openedApp);
 if (iframe && iframe.contentWindow?.eruda) {
   iframe.contentWindow.eruda.destroy();
 }
@@ -1255,12 +1256,12 @@ function deleteApp(id, e) {
     
     tx.oncomplete = () => {
       
-      applics = applics.filter(app => app.id !== id);
+      applications = applications.filter(app => app.id !== id);
       renderApps();
       
       const iframe = document.getElementById("iframe_" + id);
       if (iframe) iframe.remove();
-      if (__app === id) __app = null;
+      if (openedApp === id) openedApp = null;
     };
   }).catch(err => console.error("Delete error:", err));
 }
@@ -1311,11 +1312,12 @@ requestAnimationFrame(() => {
     initSystem();
 });
 
-// --- PIN-code Logic ---
+// --- PIN-code Logic (with SHA-256 Encryption) ---
 
-let pinIn = ""; 
+let currentPinInput = ""; // Stores entered digits
 
-async function __pin__(pin) {
+// Helper to hash PIN using native SHA-256
+async function hashPin(pin) {
   const encoder = new TextEncoder();
   const data = encoder.encode(pin);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -1346,15 +1348,15 @@ function hideLockScreen() {
 
 // Append digit on button press
 function AddToPin(num) {
-  if (pinIn.length < 8) { // Maximum length of 8 digits
-    pinIn += num;
-    document.getElementById("pin").textContent = "• ".repeat(pinIn.length);
+  if (currentPinInput.length < 8) { // Maximum length of 8 digits
+    currentPinInput += num;
+    document.getElementById("pin").textContent = "• ".repeat(currentPinInput.length);
   }
 }
 
 // Clear the input field
 function clearPin() {
-  pinIn = "";
+  currentPinInput = "";
   document.getElementById("pin").textContent = "🔒";
 }
 
@@ -1363,7 +1365,7 @@ async function writePin() {
   const savedPinHash = localStorage.getItem("catos_pin");
   
   if (savedPinHash) {
-    const inputHash = await __pin__(pinIn);
+    const inputHash = await hashPin(currentPinInput);
     if (inputHash === savedPinHash) {
       hideLockScreen();
     } else {
@@ -1382,7 +1384,7 @@ async function addPin() {
     const oldPin = prompt("Enter your CURRENT PIN to proceed:");
     if (oldPin === null) return; // Cancelled
 
-    const oldHash = await __pin__(oldPin);
+    const oldHash = await hashPin(oldPin);
     const savedHash = localStorage.getItem("catos_pin");
 
     if (oldHash !== savedHash) {
@@ -1410,7 +1412,7 @@ async function addPin() {
   }
 
   // 4. Save to localStorage if everything matches
-  const encryptedPin = await __pin__(newPin);
+  const encryptedPin = await hashPin(newPin);
   localStorage.setItem("catos_pin", encryptedPin);
   showInfoBox("PIN successfully updated!");
   openPinUp(); // Closes setting window
@@ -1426,7 +1428,7 @@ async function delPin() {
   const currentPin = prompt("Enter current PIN to confirm removal:");
   if (currentPin === null) return; // Cancelled
 
-  const inputHash = await __pin__(currentPin);
+  const inputHash = await hashPin(currentPin);
   const savedPinHash = localStorage.getItem("catos_pin");
 
   if (inputHash === savedPinHash) {
